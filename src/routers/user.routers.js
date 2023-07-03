@@ -8,8 +8,8 @@ const userController = require('../controller/user.controller');
 router.get('/:id', userController.getAlumnoById);
 router.get('/', userController.getAlumnos);
 router.post('/', userController.addAlumno);
-router.put('/:student_id', userController.updateAlumno);
-router.delete('/:id', userController.deleteAlumno);
+router.put('/', userController.updateAlumno);
+router.delete('/', userController.deleteAlumno);
 
 // Middleware para el manejo de errores
 router.use(userController.errorHandler);

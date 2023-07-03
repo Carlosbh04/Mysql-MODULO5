@@ -5,7 +5,7 @@ const db = require('../database');
 const getAlumnoById = async (req, res, next) => {
   try {
     const id = req.params.id;
-    const query = 'SELECT * FROM students WHERE student_id = ?';
+    const query = 'SELECT student_id, first_name, last_name, grupo_id, YEAR(año_de_ingreso) AS año_de_ingreso FROM students WHERE student_id = ?';
 
     const [alumnos, fields] = await db.query(query, [id]);
 
@@ -19,6 +19,7 @@ const getAlumnoById = async (req, res, next) => {
     next(err);
   }
 };
+
 
 // Obtener todos los alumnos
 const getAlumnos = async (req, res, next) => {
@@ -64,8 +65,7 @@ const addAlumno = async (req, res, next) => {
 // Modificar los datos de un alumno
 const updateAlumno = async (req, res, next) => {
   try {
-    const student_id = req.params.student_id;
-    const { first_name, last_name, grupo_id, año_de_ingreso } = req.body;
+    const { student_id, first_name, last_name, grupo_id, año_de_ingreso } = req.body;
 
     const query = `
       UPDATE students 
@@ -78,7 +78,7 @@ const updateAlumno = async (req, res, next) => {
     if (result.changedRows === 0) {
       res.status(200).json({ message: 'No se realizaron modificaciones' });
     } else {
-      res.status(200).json({ message: 'Alumno actualizado correctamente' });
+      res.status(200).json({ mensaje: 'Alumno actualizado correctamente' });
     }
   } catch (err) {
     console.error(err);
@@ -89,21 +89,22 @@ const updateAlumno = async (req, res, next) => {
 // Eliminar a un alumno
 const deleteAlumno = async (req, res, next) => {
   try {
-    const id = req.params.id;
+    const { id } = req.body;
     const query = 'DELETE FROM students WHERE student_id = ?';
 
     const [result] = await db.query(query, [id]);
 
     if (result.affectedRows === 0) {
-      res.status(404).json({ message: 'Alumno no encontrado' });
+      res.status(404).json({ mensaje: 'Alumno no encontrado' });
     } else {
-      res.status(200).json({ message: 'Alumno eliminado correctamente' });
+      res.status(200).json({ mensaje: 'Alumno eliminado correctamente' });
     }
   } catch (err) {
     console.error(err);
     next(err);
   }
 };
+
 
 const errorHandler = (err, req, res, next) => {
   console.error(err);
