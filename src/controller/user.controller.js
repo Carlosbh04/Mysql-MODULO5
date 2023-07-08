@@ -4,10 +4,10 @@ const db = require('../database');
 // Obtener un alumno por ID
 const getAlumnoById = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const query = 'SELECT student_id, first_name, last_name, grupo_id, YEAR(año_de_ingreso) AS año_de_ingreso FROM students WHERE student_id = ?';
+    const { student_id } = req.body; // Obtener el ID del alumno desde el cuerpo de la solicitud
+    const query = 'SELECT student_id, first_name, last_name, grupo_id, ingreso AS año_de_ingreso FROM students WHERE student_id = ?';
 
-    const [alumnos, fields] = await db.query(query, [id]);
+    const [alumnos, fields] = await db.query(query, [student_id]);
 
     if (alumnos.length === 0) {
       res.status(404).json({ message: 'Alumno no encontrado' });
@@ -19,6 +19,7 @@ const getAlumnoById = async (req, res, next) => {
     next(err);
   }
 };
+
 
 
 // Obtener todos los alumnos
@@ -38,7 +39,7 @@ const getAlumnos = async (req, res, next) => {
 // Añadir un nuevo alumno
 const addAlumno = async (req, res, next) => {
   try {
-    const { student_id, first_name, last_name, grupo_id, año_de_ingreso } = req.body;
+    const { student_id, first_name, last_name, grupo_id, ingreso } = req.body;
 
     // Verificar si el grupo_id existe en la tabla grupo
     const grupoQuery = 'SELECT COUNT(*) AS count FROM grupo WHERE grupo_id = ?';
@@ -51,8 +52,8 @@ const addAlumno = async (req, res, next) => {
     }
 
     // Insertar el alumno en la tabla students
-    const query = 'INSERT INTO students (student_id, first_name, last_name, grupo_id, año_de_ingreso) VALUES (?, ?, ?, ?, ?)';
-    const [result] = await db.query(query, [student_id, first_name, last_name, grupo_id, año_de_ingreso]);
+    const query = 'INSERT INTO students (student_id, first_name, last_name, grupo_id,ingreso) VALUES (?, ?, ?, ?, ?)';
+    const [result] = await db.query(query, [student_id, first_name, last_name, grupo_id,ingreso]);
 
     const alumnoId = result.insertId;
     res.status(201).json({ message: 'Alumno añadido correctamente', id: alumnoId });
@@ -65,20 +66,20 @@ const addAlumno = async (req, res, next) => {
 // Modificar los datos de un alumno
 const updateAlumno = async (req, res, next) => {
   try {
-    const { student_id, first_name, last_name, grupo_id, año_de_ingreso } = req.body;
+    const { student_id, first_name, last_name, grupo_id, ingreso } = req.body;
 
     const query = `
       UPDATE students 
-      SET first_name = ?, last_name = ?, grupo_id = ?, año_de_ingreso = ? 
+      SET first_name = ?, last_name = ?, grupo_id = ?, ingreso = ? 
       WHERE student_id = ?
     `;
 
-    const [result] = await db.query(query, [first_name, last_name, grupo_id, año_de_ingreso, student_id]);
+    const [result] = await db.query(query, [first_name, last_name, grupo_id, ingreso, student_id]);
 
     if (result.changedRows === 0) {
       res.status(200).json({ message: 'No se realizaron modificaciones' });
     } else {
-      res.status(200).json({ mensaje: 'Alumno actualizado correctamente' });
+      res.status(200).json({ message: 'Alumno actualizado correctamente' });
     }
   } catch (err) {
     console.error(err);
@@ -86,13 +87,15 @@ const updateAlumno = async (req, res, next) => {
   }
 };
 
+
+
 // Eliminar a un alumno
 const deleteAlumno = async (req, res, next) => {
   try {
-    const { id } = req.body;
+    const { student_id } = req.body;
     const query = 'DELETE FROM students WHERE student_id = ?';
 
-    const [result] = await db.query(query, [id]);
+    const [result] = await db.query(query, [student_id]);
 
     if (result.affectedRows === 0) {
       res.status(404).json({ mensaje: 'Alumno no encontrado' });
@@ -104,6 +107,7 @@ const deleteAlumno = async (req, res, next) => {
     next(err);
   }
 };
+
 
 
 const errorHandler = (err, req, res, next) => {

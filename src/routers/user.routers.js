@@ -5,7 +5,7 @@ const router = express.Router();
 const userController = require('../controller/user.controller');
 
 // Rutas de usuarios (alumnos)
-router.get('/:id', userController.getAlumnoById);
+router.post('/:id', userController.getAlumnoById);
 router.get('/', userController.getAlumnos);
 router.post('/', userController.addAlumno);
 router.put('/', userController.updateAlumno);

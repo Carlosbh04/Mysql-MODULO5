@@ -2,54 +2,61 @@ const db = require('../database');
 
 // Obtener la nota media del alumno por ID
 const getMediaById = async (req, res, next) => {
-    try {
-      const id = req.params.id;
-      const query = 'SELECT AVG(mark) AS media FROM marks WHERE student_id = ?';
-  
-      const [result, fields] = await db.query(query, [id]);
-  
-      const media = parseFloat(result[0].media);
-      const roundedMedia = media.toFixed(2);
-  
-      res.status(200).json({ media: roundedMedia });
-    } catch (err) {
-      console.error(err);
-      next(err);
-    }
-  };
-  
-  
+  try {
+    const id = req.params.id;
+    const query = `
+      SELECT s.first_name, s.last_name, AVG(m.mark) AS media
+      FROM students AS s
+      INNER JOIN marks AS m ON s.student_id = m.student_id
+      WHERE s.student_id = ?
+    `;
+
+    const [result, fields] = await db.query(query, [id]);
+
+    const { first_name, last_name, media } = result[0];
+    const roundedMedia = parseFloat(media).toFixed(2);
+
+    res.status(200).json({ first_name, last_name, media: roundedMedia });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+
 // Obtener las asignaturas apuntadas por el alumno por ID
 const getAsignaturasById = async (req, res, next) => {
-    try {
-      const id = req.query.id || req.params.id; // Obtener el ID del estudiante desde el parámetro de la URL o desde la consulta
-  
-      const query = `
-        SELECT students.first_name, students.last_name, subjects.title AS nombre
-        FROM students
-        INNER JOIN subjects_teacher ON students.grupo_id = subjects_teacher.grupo_id
-        INNER JOIN subjects ON subjects_teacher.subject_id = subjects.subject_id
-        WHERE students.student_id = ?
-      `;
-  
-      const [result, fields] = await db.query(query, [id]);
-  
+  try {
+    const id = req.query.id || req.params.id; // Obtener el ID del estudiante desde el parámetro de la URL o desde la consulta
+
+    const query = `
+      SELECT students.first_name, students.last_name, subjects.title AS nombre
+      FROM students
+      INNER JOIN subjects_teacher ON students.grupo_id = subjects_teacher.grupo_id
+      INNER JOIN subjects ON subjects_teacher.subject_id = subjects.subject_id
+      WHERE students.student_id = ?
+    `;
+
+    const [result, fields] = await db.query(query, [id]);
+
+    if (result.length > 0) {
       const alumno = {
         first_name: result[0].first_name,
         last_name: result[0].last_name
       };
-  
+
       const asignaturas = result.map((row) => row.nombre);
-  
+
       res.status(200).json({ alumno, asignaturas });
-    } catch (err) {
-      console.error(err);
-      next(err);
+    } else {
+      res.status(200).json({ alumno: {}, asignaturas: [] });
     }
-  };
-  ;
-  
-  
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
 // Obtener los alumnos y las asignaturas a las que están apuntados
 const getAlumnosAsignaturas = async (req, res, next) => {
   try {
@@ -74,8 +81,6 @@ const getAlumnosAsignaturas = async (req, res, next) => {
     next(err);
   }
 };
-
-
 
 // Obtener las asignaturas impartidas por el profesor por ID
 const getAsignaturasImpartidasById = async (req, res, next) => {
@@ -104,7 +109,6 @@ const getAsignaturasImpartidasById = async (req, res, next) => {
   }
 };
 
-
 // Obtener los profesores y las asignaturas que imparten
 const getProfesoresAsignaturas = async (req, res, next) => {
   try {
@@ -130,7 +134,10 @@ const getProfesoresAsignaturas = async (req, res, next) => {
   }
 };
 
-
-
-module.exports = { getMediaById,getAsignaturasById,getAlumnosAsignaturas,getAsignaturasImpartidasById,getProfesoresAsignaturas
+module.exports = {
+  getMediaById,
+  getAsignaturasById,
+  getAlumnosAsignaturas,
+  getAsignaturasImpartidasById,
+  getProfesoresAsignaturas
 };
